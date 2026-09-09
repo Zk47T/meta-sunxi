@@ -40,7 +40,10 @@ SUNXI_FEX_FILE ?= " "
 SUNXI_BOOT_SPACE ?= "40"
 IMAGE_BOOT_FILES ?= "${KERNEL_IMAGETYPE} boot.scr"
 # ship fex file for sunxi kernel, devicetree file for mainline kernel
-IMAGE_BOOT_FILES += "${@bb.utils.contains('PREFERRED_PROVIDER_virtual/kernel', 'linux-sunxi', '${SUNXI_FEX_FILE}', d.getVar('KERNEL_DEVICETREE', '').split('/')[-1], d)}"
+# With CONFIG_OF_UPSTREAM, U-Boot's ${fdtfile} keeps the vendor directory
+# (allwinner/board.dtb), so ship that path as well as the flat name.
+SUNXI_DTB_BOOT_FILES = "${@' '.join(('%s %s;%s' % (os.path.basename(f), os.path.basename(f), f)) if os.path.dirname(f) else os.path.basename(f) for f in (d.getVar('KERNEL_DEVICETREE') or '').split())}"
+IMAGE_BOOT_FILES += "${@bb.utils.contains('PREFERRED_PROVIDER_virtual/kernel', 'linux-sunxi', '${SUNXI_FEX_FILE}', '${SUNXI_DTB_BOOT_FILES}', d)}"
 WKS_FILES ?= "sunxi-sdcard-image.wks.in"
 WKS_FILE_DEPENDS ?= "virtual/kernel u-boot"
 # in case of sunxi kernel, sunxi-board-fex must be built prior wic image assembly

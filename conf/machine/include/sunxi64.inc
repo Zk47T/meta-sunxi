@@ -26,7 +26,10 @@ SERIAL_CONSOLES ?= "115200;ttyS0"
 MACHINE_FEATURES ?= "alsa apm keyboard rtc serial screen usbgadget usbhost vfat"
 
 SUNXI_BOOT_SPACE ?= "40"
-IMAGE_BOOT_FILES ?= "${KERNEL_IMAGETYPE} boot.scr ${@d.getVar('KERNEL_DEVICETREE', '').split('/')[-1]}"
+# With CONFIG_OF_UPSTREAM, U-Boot's ${fdtfile} keeps the vendor directory
+# (allwinner/board.dtb), so ship that path as well as the flat name.
+SUNXI_DTB_BOOT_FILES = "${@' '.join(('%s %s;%s' % (os.path.basename(f), os.path.basename(f), f)) if os.path.dirname(f) else os.path.basename(f) for f in (d.getVar('KERNEL_DEVICETREE') or '').split())}"
+IMAGE_BOOT_FILES ?= "${KERNEL_IMAGETYPE} boot.scr ${SUNXI_DTB_BOOT_FILES}"
 
 WKS_FILES ?= "sunxi-sdcard-image.wks.in"
 WKS_FILE_DEPENDS ?= "virtual/kernel u-boot"
